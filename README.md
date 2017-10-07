@@ -49,6 +49,9 @@ In fact if you know just what you want to do,
  and use GitHub to setup a pull request
  Wikipedia-style.
 
+[[ While here, worth pointing out that evissues and comments are very useful,
+   even a little thumbs up to show yure excited about a feature really really ]]
+
 This works for tiny changes, but if you want to:
 
 - run code
