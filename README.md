@@ -40,115 +40,119 @@ repo.
 Right. So the question is, how to contribute to Racket?
 
 Short answer: submit a pull request
-- Racket is on GitHub
+- Racket is on GitHub (can submit "many things" here)
 - "core" repos in the Racket organization
 
+In fact if you know just what you want to do,
+ can open the file on GitHub,
+ click the pen, make edits,
+ and use GitHub to setup a pull request
+ Wikipedia-style.
 
-Useful answer (is longer):
-- install development version of the package
-- connect dev. version to a fork
-- write documentation, unit tests
-- submit a pull request
+This works for tiny changes, but if you want to:
 
-Here's the deal. I'm going to speak for N minutes and give you the franchised
-route to submitting a pull request. Then I'll open it up to questions --- should
-have lots of time for questions. If nobody has any question, then I will ask
-some, then we can start office hours.
+- run code
+- render documentation
+- test the changes
 
+then you want the source,
+you want to install the development version of the package.
 
-Step 0, install Racket. I've already done this, got Racket v6.10.1 from
-<download.racket-lang.org>. Next we're going to use `raco` to run some commands,
-so when I write
+If you have Racket from download.racket-lang.org, then you gotta (find raco):
 
-`raco6.10.1` what I mean is the `raco` executable from by Racket v6.10.1 install.
+- raco pkg update --catalog https://pkgs.racket-lang.org pict
+- raco pkg update --clone pict
 
+Now you have `pict` in the current directory.
+Means you have the development version installed,
+ you can edit this code and import it.
 
-Step 1, install the package from source. Lets say we want to edit RackUnit.
-Need to run 2 commands
+To setup a pull request from here,
+ need to make a fork of pict,
+ then connect your fork as a remote.
 
-```
-$ raco pkg update --catalog https://pkgs.racket-lang.org rackunit
-$ raco pkg update --clone rackunit
-```
+Let's do that.
 
-First command says _where_ to find the development version of RackUnit.
-Second command installs RackUnit from the git repo.
+- git remote rename origin upstream
+- git remote add origin <FORK-URL>
 
-NOTE: second command puts the clone in your current directory.
-Good idea to keep all clones in the same place.
+Now we can create a branch,
+ commit changes,
+ push to the branch,
+ and visit "upstream" to create a pull request.
 
+Any questions on what we've done so far?
+Mostly been working with Git / GitHub, the two new commands are
 
-Next, make a fork.
-Go to GitHub for this, click the fork button, choose the repo to fork to, and that's done.
+- raco pkg update --catalog https://pkgs.racket-lang.org pict
+- raco pkg update --clone <PKG>
 
-Last thing to do here is connect your clone --- which is on your computer --- to
-your fork --- which is on the internet. Magic words (from the cloned dir):
+Now lets go through the motions of adding a real pull request.
+I chose pict because I have a goal in mind, I want to add a picture of my cat to the standard library.
 
-```
-$ git remote rename origin upstream
-$ git remote add origin <FORK-URL>
-```
+Right, if you go in the docs for pict, there's a section on dingbats.
+... fish, jack-o-lantern, then there's extra libraries,
+  for balloons
+  faces
+  flashes
+Well I want to add little bear
 
-where `<FORK-URL>` the URL of your new fork, something like `https://github.com/USER/rackunit`
-Golden.
+    #lang racket
+    (require pict/littlebear)
+    meow
 
-Now we're in business, from here let's open a new branch:
+And that should display this picture of the little bear.
 
-```
-$ git checkout -b my-branch
-```
+Back to the code, the module path gives a spec.
+Need to export an identifier named `meow`
+ from a module named `littlebear.rkt`
+ in the pict collection.
 
-And for fun let's edit RackUnit:
+Lets go ahead and do that.
 
-(add a `printf` to `rackunit/rackunit-lib/rackunit/main.rkt`)
+    #lang racket
+    (provide meow)
+    (require racket/runtime-path pict)
+    (define-runtime-path LB "private/little-bear.jpg")
+    (define meow (bitmap LB))
 
-if all's gone well so far, should see a "hello" from RackUnit
+Golden, can run the dream code from before.
 
+To help other people find our module, need to add documentation.
+Want this to appear on the "More Pict Constructors" page, so need to edit that.
+To find the page,
+ go to github,
+ enter the `pict-doc` folder,
+ find the `scribblings` folder,
+ and start browsing the files.
+I happen to know `more.scrbl` is the right one, so that's that.
 
-~~~ FUNKY HENCEFORTH ~~~
+Open the file and edit:
 
-Down to real business, lets talk about how to find the code docs tests.
-That file we just edited, `main.rkt` in the RackUnit collection,
- is in the folder `rackunit/rackunit-lib/rackunit/`.
+  ; also require for-label and in the evaluator
+  @section{Little Bear}
+  @defmodule[pict/littlebear]{
+    Little bear!
+  }
+  @defidform[meow]{
+    Creates a little bear.
 
-Step back for a bit,
-the `rackunit/` directory holds a bunch of directories. In here you'll notice:
-- `rackunit-lib/`
-- `rackunit-doc/`
-- `rackunit-test/`
+  @examples[#:eval ss-eval
+  meow
+  ]
+  }
 
-Gives you a hint where to find things.
+To rebuild run `raco setup pict`.
+Should finish pretty quickly.
 
-NOTE: this is a convention, these toplevel folders.
-Other core repos follow the convention, so its worth exploring this example.
+The last thing I need to tell you is how to run the tests:
 
+    raco test --drdr -c pict
 
-- `-lib` contains the implementation, in a folder named `rackunit`
-  everything here is fair game to require EXCEPT the stuff in the `private/`
-  folder; that's how Racket does private okay its a please don't touch
+Other repos might have different ways to test, but this usually does the trick.
+If anything this should raise more errors.
 
-  If you want to edit code, check `rackunit-lib/rackunit/private`
-
-- `-doc` contains the documentation, buried in a `scribblings/` folder.
-  Start at the doc, dive down to the scribblings.
-  Not sure what file to edit?
-  Open the docs (`raco docs rackunit`), click a nearby section header.
-  At least gives you a filename to go on.
-
-- `-test` has the tests, somewhere in a `rackunit` folder.
-
-Course you can edit all these files in DrRacket.
-But how to build and how to test?
-
-First lets edit the docs.
-To rebuild, run `raco setup rackunit`.
-
-Second lets run the tests: `raco test -c rackunit`
-
-Okay and that's that.
-Cloning has 2 parts --- get the dev. code and make a fork ---
- and then you can edit the code, build and test using those commands.
-Hack on things, test and build using those commands,
+Now ready to commit and setup a pull request like before.
 
 To summarize:
 
@@ -156,7 +160,7 @@ To summarize:
 $ raco pkg update --catalog https://pkgs.racket-lang.org PKG
 $ raco pkg update --clone PKG
 $ raco setup PKG
-$ raco test -c --drdr PKG
+$ raco test --drdr -c PKG
 ```
 
 - - -
