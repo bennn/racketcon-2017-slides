@@ -1,41 +1,53 @@
 #lang at-exp slideshow
 
-;; 
+;; Slides for RacketCon mini-tutorial
+
+;; TODO
+;; - pull slideshow master
+;; - check current PRs
+;; - fix 'timeout' typo
 
 (require
+  pict
   slideshow/code
-  racket/runtime-path)
+  racket/runtime-path
+  (only-in 2htdp/image
+    star))
 
 ;; =============================================================================
 
 (define (do-show)
-  (parameterize ([current-main-font "Roboto"]
-                 [*current-tech* #false])
-    #;(sec:title)
-    #;(sec:short-answer)
-    #;(sec:contribution-outline)
-    #;(sec:getting-started)
-    #;(sec:install-source)
-    #;(sec:edit-code)
-    #;(sec:contribution-outline)
-    #;(sec:render-documentation)
-    #;(sec:run-tests)
-    #;(sec:contribution-outline)
+  (set-page-numbers-visible! #true)
+  (parameterize ([current-main-font "Avenir" #;"Monaco" #;"Optima"]
+                 [current-font-size 32]
+                 [current-titlet string->title]
+                 [*current-tech* #true])
+    (sec:title)
+    (sec:short-answer)
+    (sec:contribution-outline)
+    (sec:getting-started)
+    (sec:install-source)
+    (sec:edit-code) #;(sec:contribution-outline)
+    (sec:render-documentation)
+    (sec:run-tests)
     (sec:summary)
+    (sec:extra)
     (void)))
 
 ;; -----------------------------------------------------------------------------
 
-;; TODO make it blue
-(define url
-  tt)
+(define (tt str)
+  (text str '(bold . modern) (- (current-font-size) 4)))
 
-(define MD-URL
+(define (url str)
+  (hyperlinkize (tt str)))
+
+(define (MD-URL)
   @url{https://tinyurl.com/racketeering101}
   @;@url{https://github.com/bennn/racket-lang-org/blob/pr-blog/blog/_src/posts/2017-09-27-tutorial-contributing-to-racket.md}
   )
 
-(define PR-URL
+(define (PR-URL)
   @url{https://github.com/racket/racket-lang-org/pull/58})
 
 (define-runtime-path PWD ".")
@@ -60,17 +72,31 @@
   (text str "Bebas Neue, Bold" 72))
 
 (define CHECK
-  (disk 10 #:color "green"))
+  (star 40 "solid" "gold"))
 
 (define-syntax-rule (mypara elem* ...)
   ;; TODO work on alignment
   (para #:align 'left elem* ...))
 
+(define (string->title str)
+  (text str (current-main-font) 44))
+
+(define (question . elem*)
+  (make-prompted "Q." elem*))
+
+(define (answer . elem*)
+  (make-prompted "A." elem*))
+
+(define (make-prompted pre elem*)
+  (parameterize ([current-font-size (+ 4 (current-font-size))])
+    (apply para (para #:width 40 pre)
+      elem*)))
+
 ;; -----------------------------------------------------------------------------
 
 (define (sec:title)
   (slide
-    #:title "Racketeering 101"
+    @text["Racketeering 101" (current-main-font) (+ (current-font-size) 20)]
     @t{Ben Greenman, NEU}
     @comment{
       hello everyone, I'm here to tell you how to contribute to racket
@@ -78,9 +104,9 @@
 
 (define (sec:short-answer)
   (slide
-    #:title "Q. How to contribute to Racket?"
+    @question{How to contribute to Racket?}
     'next
-    @item{A. Submit a pull request}
+    @answer{Submit a pull request}
     @comment{
       Racket is on GitHub,
       to suggest changes etc etc. just find the right repo and throw things at it
@@ -101,23 +127,24 @@
     (slide
       #:title "Submit a Pull Request"
       @comment{})
+    (slide
+      @question{How to contribute to Racket?}
+      @answer{Submit a pull request}
+      ; TODO check mark?
+      @comment{
+        Racket is on GitHub,
+        to suggest changes etc etc. just find the right repo and throw things at it
+      })
     (void))
-  (slide
-    #:title "Q. How to contribute to Racket?"
-    'next
-    @item{A. Submit a pull request @|CHECK|}
-    @comment{
-      Racket is on GitHub,
-      to suggest changes etc etc. just find the right repo and throw things at it
-    })
   (void))
 
 ;; TODO parameterize by number of times played, show checkmarks?
+;; TODO relly need check mark
 (define (sec:contribution-outline)
   (slide
-    #:title "Q. How to ..."
+    @question{How to .... ?}
     @item{Install a package from source}
-    @item{Edit, run the code}
+    @item{Change the code}
     @item{Render documentation}
     @item{Run tests}
     @comment{
@@ -128,9 +155,11 @@
 (define (sec:getting-started)
   (slide
     #:title "Step 0: Getting Started"
-    @para{Download Racket @url{download.racket-lang.org}}
-    @para{Locate @tt{raco}}
-    @para{Choose a package, @tt{<PKG> = pict}}
+    @item{Download Racket}
+    @subitem{@url{download.racket-lang.org}}
+    @item{Locate @tt{raco}}
+    @item{Choose a package to edit}
+    @subitem{Let @tt{<PKG> = pict}}
     @comment{
       yo lo
       I have racket 6.10.1 installed, assuming you have the same thing too
@@ -141,16 +170,17 @@
 
 (define (sec:install-source)
   (slide
-    #:title "Step 1: Install <PKG> from source"
-    @mypara{@tt{raco pkg update --catalog https://pkgs.racket-lang.org <PKG>}}
-    @mypara{@tt{raco pkg update --clone <PKG>}}
+    #:title "Step 1: Install package from source"
+    @item{@tt{raco pkg update --catalog <URL> <PKG>}}
+    @item{@tt{raco pkg update --clone <PKG>}}
+    @subitem{@tt{<URL> =} @url{https://pkgs.racket-lang.org}}
     @comment{
       time to install = roughly 1 coffee break
     })
   (slide
-    #:title "Step 1.5: Fork <PKG>"
+    #:title "Step 1.5: Connect source to GitHub"
     @item{Fork @tt{<PKG>} on GitHub}
-    @item{@tt{git remote add fork https://github.com/<USER>/<PKG>}}
+    @item{@tt{git remote add fork <FORK-URL>}}
     @item{@tt{git checkout -b <BRANCH-NAME>}}
     @comment{
       now you have the source, can start hacking,
@@ -158,6 +188,29 @@
       on the github
     })
   (when (lo-tech?)
+    (parameterize ([current-font-size (- (current-font-size) 6)])
+      (slide
+        #:title "Update catalog"
+        @para{@tt{$ raco pkg update --catalog pkgs.racket-lang.org pict}}
+        @para{@tt{Inferred package scope: installation}}
+        @para{@tt{Resolving "pict" via https://pkgs.racket-lang.org}}
+        @para{@tt{Updating:}}
+        @para{@tt{....}}
+        @para{@tt{raco setup: --- parallel build using 4 jobs ---}}
+        @para{@tt{raco setup: 3 making: <collects>/racket}}
+        @para{@tt{C-c}}
+        @comment{})
+      (slide
+        #:title "Clone package"
+        @para{@tt{$ raco pkg update --clone pict}}
+        @para{@tt{Inferred package name from given `--clone' path}}
+        @para{@tt{....}}
+        @para{@tt{Convert the non-clone packages to clones, too?}}
+        @para{@tt{  [Y/n/a/c/?] y}}
+        @para{@tt{....}}
+        @para{@tt{raco setup: --- parallel build using 4 jobs ---}}
+        @para{@tt{....}}
+        @comment{}))
     (slide
       #:title "Go to GitHub"
       @comment{})
@@ -172,10 +225,11 @@
 
 (define (sec:edit-code)
   (slide
-    #:title "Step 2: Edit the code"
-    @item{Look under @tt{<PKG>-lib}}
-    @item{"Open Defining File"}
+    #:title "Step 2: Find & edit the code"
+    @item{Search under @tt{<PKG>-lib}}
+    @item{In DrRacket: "Open Defining File"}
     @item{@tt{raco fc <PKG>}}
+    @subitem{@tt{raco pkg install raco-find-collection}}
     @comment{
       time to edit the code,
       general advice, what you want is probably under pict-lib
@@ -184,7 +238,7 @@
     })
   (when (lo-tech?)
     (slide
-      #:title "Hack on <PKG>"
+      #:title "Edit the code"
       @comment{})
     (slide
       #:title "Commit changes"
@@ -200,7 +254,7 @@
 
 (define (sec:render-documentation)
   (slide
-    #:title "Edit Documentation"
+    #:title "Step 3: Edit the Documentation"
     @item{To view: @tt{raco docs <PKG>}}
     @item{To edit: @tt{<PKG>-doc/**/scribblings}}
     @item{To build: @tt{raco setup <PKG>}}
@@ -241,8 +295,8 @@
 
 (define (sec:run-tests)
   (slide
-    #:title "Run tests"
-    @item{@tt{raco test --drdr -c <PKG>}}
+    #:title "Step 4: Run tests"
+    @item{@tt{raco test -c <PKG>}}
     @comment{
       exactly how to test depends on the package,
       but usually raco test -c says if you broke something
@@ -259,12 +313,79 @@
 
 (define (sec:summary)
   (slide
-    #:title "Summary"
-    @item{Pre-clone: @tt{raco pkg update --catalog https://pkgs.racket-lang.org <PKG>}}
-    @item{Clone: @tt{raco pkg install --clone <PKG>}}
-    @item{Build: @tt{raco setup <PKG>}}
-    @item{Test: @tt{raco test -c <PKG>}}
-    @para{More info at @|MD-URL|}
+    #:title "Reference"
+    @item{@tt{raco pkg update --catalog <URL> <PKG>}}
+    @subitem{@tt{<URL> =} @url{https://pkgs.racket-lang.org}}
+    @item{@tt{raco pkg update --clone <PKG>}}
+    @item{@tt{raco setup <PKG>}}
+    @item{@tt{raco test -c <PKG>}}
+    @para{See @MD-URL[]}
+    @comment{
+    })
+  (void))
+
+(define (sec:extra)
+  (slide
+    #:title "Install a new package"
+    @tt{raco pkg install --clone <PKG>}
+    @comment{
+    })
+  (slide
+    #:title "Test with \"standard\" settings"
+    @tt{raco test --drdr -c <PKG>}
+    @comment{
+    })
+  (slide
+    #:title "Build docs and index"
+    @tt{raco setup --doc-index <PKG>}
+    @comment{
+    })
+  (slide
+    #:title "Update a pull request"
+    @tt{git commit -m "new stuff"}
+    @tt{git push fork <MY-BRANCH>}
+    @comment{
+    })
+  (slide
+    #:title "Build Racket from source"
+    @item{@tt{git clone https://github.com/racket/racket}}
+    @item{@tt{cd racket}}
+    @item{@tt{make}}
+    @item{@tt{mkdir extra-pkgs}}
+    @comment{
+    })
+  (slide
+    #:title "What's in racket/racket ?"
+    @item{@tt{racket/class}}
+    @item{@tt{racket/contract}}
+    @item{@tt{racket/list}}
+    @item{@tt{racket/logging}}
+    @item{@tt{racket/match}}
+    @item{@tt{racket/system}}
+    @item{....}
+    @comment{
+    })
+  (slide
+    #:title "What's in the racket GitHub org.?"
+    @item{@tt{htdp}}
+    @item{@tt{math}}
+    @item{@tt{plot}}
+    @item{@tt{redex}}
+    @item{@tt{slideshow}}
+    @item{@tt{typed-racket}}
+    @item{....}
+    @comment{
+    })
+  (slide
+    #:title "What's on the package server?"
+    @item{@tt{adjutor}}
+    @item{@tt{dan-scheme}}
+    @item{@tt{debug-repl}}
+    @item{@tt{html-parsing}}
+    @item{@tt{frog}}
+    @item{@tt{pollen}}
+    @item{@tt{syntax-sloc}}
+    @item{....}
     @comment{
     })
   (void))
