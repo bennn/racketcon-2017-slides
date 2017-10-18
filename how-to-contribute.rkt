@@ -2,11 +2,6 @@
 
 ;; Slides for RacketCon mini-tutorial
 
-;; TODO
-;; - pull slideshow master
-;; - check current PRs
-;; - fix 'timeout' typo
-
 (require
   pict
   slideshow/code
@@ -23,7 +18,11 @@
                  [current-titlet string->title]
                  [*current-tech* #true])
     (sec:title)
-    (sec:short-answer)
+    (slide
+      @para{This is a tutorial about contributing a pull request to a repo in the 'racket' GitHub organization.}
+      @para{@url{https://github.com/racket}})
+    (sec:example)
+    #;(sec:short-answer)
     (sec:contribution-outline)
     (sec:getting-started)
     (sec:install-source)
@@ -100,7 +99,8 @@
     @t{Ben Greenman, NEU}
     @comment{
       hello everyone, I'm here to tell you how to contribute to racket
-    }))
+    })
+  (void))
 
 (define (sec:short-answer)
   (slide
@@ -293,6 +293,13 @@
     (void))
   (void))
 
+(define (sec:example)
+  (slide
+    (scale (bitmap (build-path PWD "src" "little-bear.jpg")) 2))
+  (slide
+    (bitmap (build-path PWD "src" "dr-littlebear.jpg")))
+  (void))
+
 (define (sec:run-tests)
   (slide
     #:title "Step 4: Run tests"
@@ -386,6 +393,16 @@
     @item{@tt{pollen}}
     @item{@tt{syntax-sloc}}
     @item{....}
+    @comment{
+    })
+  (slide
+    #:title "Where's the source for the package server?"
+    @url{https://github.com/tonyg/racket-pkg-server}
+    @comment{
+    })
+  (slide
+    #:title "Where's the source for the Racket website?"
+    @url{https://github.com/racket/racket-lang-org}
     @comment{
     })
   (void))
